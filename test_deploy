@@ -1,0 +1,12 @@
+node {
+    stage("发布1") {
+        dir('/tmp/') {
+            ansiblePlaybook( 
+                playbook: "/tmp/playbook/test.yml",
+                inventory: "/tmp/hosts.ini",
+                credentialsId: 'sample-ssh-key', 
+                extraVars: [host: "${app_id}_${ENV}_first",app_id: "${app_id}",env: "${ENV}",server_type: "${server_type}",tag_name: "${tag_name}"]
+            )
+        }
+    }
+}
