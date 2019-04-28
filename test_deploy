@@ -9,29 +9,30 @@ node {
         }
         stage('clone code from gitlab') {
             checkout([$class: 'GitSCM', 
-            branches: [[name: "${B_NAME}"]], 
-            userRemoteConfigs: [[
-                credentialsId: 'xxx-xxx', 
-                refspec: "${REFSPEC}", 
-                url: 'git@git.example.com:project.git']]
+                branches: [[name: "${B_NAME}"]], 
+                userRemoteConfigs: [[
+                    credentialsId: 'xxx-xxx', 
+                    refspec: "${REFSPEC}", 
+                    url: 'git@git.example.com:project.git']]
             ])
         }
         stage('clone code from svn') {
             checkout([$class: 'SubversionSCM', 
-            additionalCredentials: [], 
-            excludedCommitMessages: '', 
-            excludedRegions: '', 
-            excludedRevprop: '', 
-            excludedUsers: '', 
-            filterChangelog: false, 
-            ignoreDirPropChanges: false, 
-            includedRegions: '', 
-            locations: [[credentialsId: 'xxx-xxx',
-                   depthOption: 'infinity',
-                   ignoreExternalsOption: true,
-                   local: '.',
-                   remote: "http://svn.example.com/project@${tag_name}"]],
-            workspaceUpdater: [$class: 'UpdateUpdater']])
+                additionalCredentials: [], 
+                excludedCommitMessages: '', 
+                excludedRegions: '', 
+                excludedRevprop: '', 
+                excludedUsers: '', 
+                filterChangelog: false, 
+                ignoreDirPropChanges: false, 
+                includedRegions: '', 
+                locations: [[credentialsId: 'xxx-xxx',
+                       depthOption: 'infinity',
+                       ignoreExternalsOption: true,
+                       local: '.',
+                       remote: "http://svn.example.com/project@${tag_name}"]],
+                workspaceUpdater: [$class: 'UpdateUpdater']
+            ])
         }
         stage('deploy') {
             ansiblePlaybook( 
