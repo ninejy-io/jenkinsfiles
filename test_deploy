@@ -1,31 +1,45 @@
 node {
-    stage("发布1") {
-        dir('/tmp/') {
-            stage('clone code') {
-                checkout([$class: 'SubversionSCM', 
-                additionalCredentials: [], 
-                excludedCommitMessages: '', 
-                excludedRegions: '', 
-                excludedRevprop: '', 
-                excludedUsers: '', 
-                filterChangelog: false, 
-                ignoreDirPropChanges: false, 
-                includedRegions: '', 
-                locations: [[credentialsId: 'xxx-xxx',
-                       depthOption: 'infinity',
-                       ignoreExternalsOption: true,
-                       local: '.',
-                       remote: "http://svn.example.com/project@${tag_name}"]],
-                workspaceUpdater: [$class: 'UpdateUpdater']])
-            }
-            stage('deploy') {
-                ansiblePlaybook( 
-                    playbook: "/tmp/playbook/test.yml",
-                    inventory: "/tmp/hosts.ini",
-                    credentialsId: 'sample-ssh-key', 
-                    extraVars: [host: "${app_id}_${ENV}_first",app_id: "${app_id}",env: "${ENV}",server_type: "${server_type}",tag_name: "${tag_name}"]
-                )
-            }
+    dir('/tmp/') {
+        if ("${pull_type}" == "TAG") {
+            B_NAME = "refs/tags/${tag_name}"
+            REFSPEC = "+refs/tags/*:refs/remotes/origin/tags/*"
+        } else {
+            B_NAME = "${tag_name}"
+            REFSPEC = "+refs/heads/*:refs/remotes/origin/*"
+        }
+        stage('clone code from gitlab') {
+            checkout([$class: 'GitSCM', 
+            branches: [[name: "${B_NAME}"]], 
+            userRemoteConfigs: [[
+                credentialsId: 'xxx-xxx', 
+                refspec: "${REFSPEC}", 
+                url: 'git@git.example.com:project.git']]
+            ])
+        }
+        stage('clone code from svn') {
+            checkout([$class: 'SubversionSCM', 
+            additionalCredentials: [], 
+            excludedCommitMessages: '', 
+            excludedRegions: '', 
+            excludedRevprop: '', 
+            excludedUsers: '', 
+            filterChangelog: false, 
+            ignoreDirPropChanges: false, 
+            includedRegions: '', 
+            locations: [[credentialsId: 'xxx-xxx',
+                   depthOption: 'infinity',
+                   ignoreExternalsOption: true,
+                   local: '.',
+                   remote: "http://svn.example.com/project@${tag_name}"]],
+            workspaceUpdater: [$class: 'UpdateUpdater']])
+        }
+        stage('deploy') {
+            ansiblePlaybook( 
+                playbook: "/tmp/playbook/test.yml",
+                inventory: "/tmp/hosts.ini",
+                credentialsId: 'sample-ssh-key', 
+                extraVars: [host: "${app_id}_${ENV}_first",app_id: "${app_id}",env: "${ENV}",server_type: "${server_type}",tag_name: "${tag_name}"]
+            )
         }
     }
 }
